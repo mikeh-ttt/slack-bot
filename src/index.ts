@@ -1,13 +1,8 @@
 import pkg from "@slack/bolt";
 import "dotenv/config";
-import { registerAllCommands } from "./commands/index.js";
-import { registerAllJobs } from "./jobs/index.js";
-import {
-  initializeDatabase,
-  closeDatabase,
-  addJob,
-  getJobByName,
-} from "./services/database.js";
+import { registerAllCommands } from "./commands/index";
+import { registerAllJobs } from "./jobs/index";
+import { initializeDatabase, closeDatabase } from "./services/database";
 const { App, LogLevel } = pkg;
 
 const {

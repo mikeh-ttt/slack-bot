@@ -6,7 +6,7 @@ import {
 } from "../services/harvest";
 import { DEFAULT_TARGET_HOURS, lastWeekRangePT } from "../utils";
 import { COMMANDS } from "./constants";
-import { getNudgeCountThisWeek } from "../services/database.js";
+import { getNudgeCountThisWeek } from "../services/database";
 
 async function slackIdByEmail(email: string | undefined, web: any) {
   if (!email) return undefined;

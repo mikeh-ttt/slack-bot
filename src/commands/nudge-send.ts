@@ -4,7 +4,7 @@ import {
   recordNudge,
   getNudgeCount,
   getNudgeCountThisWeek,
-} from "../services/database.js";
+} from "../services/database";
 
 export function registerNudgeSend(app: App) {
   app.action(COMMANDS.nudgeSend, async ({ ack, body, action, client }) => {

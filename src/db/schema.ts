@@ -16,7 +16,15 @@ export const jobs = sqliteTable("jobs", {
   active: integer("active", { mode: "boolean" }).notNull().default(true),
 });
 
+export const managements = sqliteTable("managements", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+});
+
 export type Nudge = typeof nudges.$inferSelect;
 export type NewNudge = typeof nudges.$inferInsert;
 export type Job = typeof jobs.$inferSelect;
 export type NewJob = typeof jobs.$inferInsert;
+export type Management = typeof managements.$inferSelect;
+export type NewManagement = typeof managements.$inferInsert;

@@ -1,5 +1,5 @@
-import { db, closeDb } from "../db/index.js";
-import { nudges, jobs } from "../db/schema.js";
+import { db, closeDb } from "../db/index";
+import { nudges, jobs } from "../db/schema";
 import { eq, count, and, gte, sql } from "drizzle-orm";
 
 export function initializeDatabase() {

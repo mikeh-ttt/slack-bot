@@ -63,8 +63,8 @@ export function registerHarvestSummary(app: App, allowed: Set<string>) {
           } else if (u.hours < target) {
             status = "🟡";
           }
-          const nameEmail = `*${u.name}*\n${u.email}`;
-          return `${status} ${nameEmail} — *${h}h`;
+          const nameEmail = `*${u.name}* - ${u.email}`;
+          return `${status} ${nameEmail} — *${h}h*`;
         })
         .join("\n");
 

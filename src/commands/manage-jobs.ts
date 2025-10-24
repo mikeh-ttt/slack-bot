@@ -1,6 +1,6 @@
 import { App } from "@slack/bolt";
-import { getAllJobs, updateJob } from "../services/database.js";
-import { restartTimesheetCheckJob } from "../jobs/timesheet-check.js";
+import { getAllJobs, updateJob } from "../services/database";
+import { restartTimesheetCheckJob } from "../jobs/timesheet-check";
 import { COMMANDS } from "./constants";
 
 export function registerManageJobs(app: App, allowed: Set<string>) {
