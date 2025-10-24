@@ -5,7 +5,7 @@
     "scripts": {
         "dev": "tsx src/index.ts",
         "start": "node --enable-source-maps dist/index.js",
-        "build": "tsc -p tsconfig.json"
+        "build": "tsup src/index.ts --format esm --outDir dist --sourcemap"
     },
     "dependencies": {
         "@date-fns/tz": "^1.4.1",
@@ -16,6 +16,7 @@
         "node-cron": "^4.2.1"
     },
     "devDependencies": {
+        "tsup": "^8.5.0",
         "tsx": "^4.19.2",
         "typescript": "^5.6.3"
     }

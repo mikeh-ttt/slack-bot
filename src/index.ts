@@ -1,7 +1,7 @@
 import pkg from "@slack/bolt";
 import "dotenv/config";
-import { registerAllCommands } from "./commands";
-import { registerAllJobs } from "./jobs";
+import { registerAllCommands } from "./commands/index.js";
+import { registerAllJobs } from "./jobs/index.js";
 const { App, LogLevel } = pkg;
 
 const {

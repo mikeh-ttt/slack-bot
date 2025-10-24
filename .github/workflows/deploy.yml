@@ -1,0 +1,88 @@
+name: Deploy to Windows Server
+
+on:
+  push:
+    branches: [main, dev]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests (if any)
+        run: npm test --if-present
+
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_SIGNING_SECRET=${{ secrets.SLACK_SIGNING_SECRET }}
+          SLACK_APP_TOKEN=${{ secrets.SLACK_APP_TOKEN }}
+          HARVEST_ACCOUNT_ID=${{ secrets.HARVEST_ACCOUNT_ID }}
+          HARVEST_ACCESS_TOKEN=${{ secrets.HARVEST_ACCESS_TOKEN }}
+          ALLOWED_INVOKERS=${{ secrets.ALLOWED_INVOKERS }}
+          NODE_ENV=production
+          EOF
+
+      - name: Deploy to Windows Server (via SSH)
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.WINDOWS_SERVER_HOST }}
+          username: ${{ secrets.WINDOWS_SERVER_USER }}
+          # Prefer key auth if possible:
+          # key: ${{ secrets.WINDOWS_SERVER_SSH_KEY }}
+          password: ${{ secrets.WINDOWS_SERVER_PASSWORD }}
+          command_timeout: 30m
+          script_stop: true
+          script: |
+            # PowerShell on Windows host
+            cd "${{ secrets.PROJECT_PATH }}"
+            git fetch origin ${{ github.ref_name }}
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+
+            # Node 20 / npm present on server
+            npm ci --omit=dev
+            npm run build
+
+            # Docker Compose v2 preferred
+            if (Get-Command "docker" -ErrorAction SilentlyContinue) {
+              docker compose down
+              docker compose up -d --build
+            } elseif (Get-Command "docker-compose" -ErrorAction SilentlyContinue) {
+              docker-compose down
+              docker-compose up -d --build
+            } else {
+              Write-Error "Docker Compose not installed."
+              exit 1
+            }
+
+      - name: Copy .env to Windows Server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.WINDOWS_SERVER_HOST }}
+          username: ${{ secrets.WINDOWS_SERVER_USER }}
+          password: ${{ secrets.WINDOWS_SERVER_PASSWORD }}
+          source: ".env"
+          target: "${{ secrets.PROJECT_PATH }}"
+
+      - name: Notify deployment
+        if: success()
+        run: echo "✅ Deployment successful!"
+
+      - name: Notify failure
+        if: failure()
+        run: echo "❌ Deployment failed!"
