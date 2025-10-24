@@ -4,7 +4,7 @@ import {
   getUserHoursForRange,
 } from "../services/harvest";
 import { parseSummaryArgs } from "../utils";
-import { COMMANDS } from "./constants";
+import { COMMANDS } from "../utils/commands";
 
 export function registerHarvestSummary(app: App, allowed: Set<string>) {
   app.command(COMMANDS.harvestSummary, async ({ ack, body, respond }) => {

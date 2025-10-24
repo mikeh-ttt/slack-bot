@@ -1,13 +1,13 @@
 import { App } from "@slack/bolt";
-import { COMMANDS } from "./constants";
 import {
-  recordNudge,
   getNudgeCount,
   getNudgeCountThisWeek,
+  recordNudge,
 } from "../services/database";
+import { ACTIONS } from "../utils/actions";
 
 export function registerNudgeSend(app: App) {
-  app.action(COMMANDS.nudgeSend, async ({ ack, body, action, client }) => {
+  app.action(ACTIONS.nudgeSend, async ({ ack, body, action, client }) => {
     await ack();
     try {
       const btn = action as any;

@@ -1,5 +1,5 @@
 import { db, closeDb } from "../db/index";
-import { nudges, jobs } from "../db/schema";
+import { nudges, jobs, managements } from "../db/schema";
 import { eq, count, and, gte, sql } from "drizzle-orm";
 
 export function initializeDatabase() {
@@ -152,6 +152,46 @@ export function getAllJobs() {
 
 export function getActiveJobs() {
   return db.select().from(jobs).where(eq(jobs.active, true)).all();
+}
+
+// Management-related functions
+
+export function addManagement(name: string, email: string) {
+  return db
+    .insert(managements)
+    .values({
+      name,
+      email,
+    })
+    .run();
+}
+
+export function updateManagement(
+  id: number,
+  name?: string,
+  email?: string
+) {
+  const updates: Partial<{ name: string; email: string }> = {};
+  if (name) updates.name = name;
+  if (email) updates.email = email;
+
+  return db.update(managements).set(updates).where(eq(managements.id, id)).run();
+}
+
+export function deleteManagement(id: number) {
+  return db.delete(managements).where(eq(managements.id, id)).run();
+}
+
+export function getManagementById(id: number) {
+  return db.select().from(managements).where(eq(managements.id, id)).get();
+}
+
+export function getManagementByEmail(email: string) {
+  return db.select().from(managements).where(eq(managements.email, email)).get();
+}
+
+export function getAllManagements() {
+  return db.select().from(managements).all();
 }
 
 export function closeDatabase() {

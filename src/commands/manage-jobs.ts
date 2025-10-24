@@ -1,7 +1,7 @@
 import { App } from "@slack/bolt";
 import { getAllJobs, updateJob } from "../services/database";
 import { restartTimesheetCheckJob } from "../jobs/timesheet-check";
-import { COMMANDS } from "./constants";
+import { COMMANDS } from "../utils/commands";
 
 export function registerManageJobs(app: App, allowed: Set<string>) {
   app.command(COMMANDS.manageJobs, async ({ ack, body, client, respond }) => {
