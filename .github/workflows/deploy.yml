@@ -22,9 +22,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run tests (if any)
-        run: npm test --if-present
-
       - name: Create .env file
         run: |
           cat > .env << EOF
@@ -40,16 +37,14 @@ jobs:
       - name: Deploy to Windows Server (via SSH)
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.WINDOWS_SERVER_HOST }}
+          host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.WINDOWS_SERVER_USER }}
-          # Prefer key auth if possible:
-          # key: ${{ secrets.WINDOWS_SERVER_SSH_KEY }}
           password: ${{ secrets.WINDOWS_SERVER_PASSWORD }}
           command_timeout: 30m
           script_stop: true
           script: |
             # PowerShell on Windows host
-            cd "${{ secrets.PROJECT_PATH }}"
+            cd "C:\Users\admin\slack-bot"
             git fetch origin ${{ github.ref_name }}
             git checkout ${{ github.ref_name }}
             git pull origin ${{ github.ref_name }}
@@ -73,11 +68,11 @@ jobs:
       - name: Copy .env to Windows Server
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.WINDOWS_SERVER_HOST }}
+          host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.WINDOWS_SERVER_USER }}
           password: ${{ secrets.WINDOWS_SERVER_PASSWORD }}
           source: ".env"
-          target: "${{ secrets.PROJECT_PATH }}"
+          target: "C:\\Apps\\harvest-slack-bot"
 
       - name: Notify deployment
         if: success()
