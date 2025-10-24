@@ -4,6 +4,7 @@ import { registerNudgeSend } from "./nudge-send";
 import { registerTimesheetNudge } from "./timesheet-nudge";
 import { registerTimesheetReport } from "./timesheet-report";
 import { registerLeaderboard } from "./leaderboard";
+import { registerManageJobs } from "./manage-jobs";
 
 export function registerAllCommands(app: App, allowed: Set<string>) {
   registerHarvestSummary(app, allowed);
@@ -11,4 +12,5 @@ export function registerAllCommands(app: App, allowed: Set<string>) {
   registerTimesheetNudge(app, allowed);
   registerNudgeSend(app);
   registerLeaderboard(app, allowed);
+  registerManageJobs(app, allowed);
 }

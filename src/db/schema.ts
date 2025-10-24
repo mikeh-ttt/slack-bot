@@ -11,6 +11,7 @@ export const nudges = sqliteTable("nudges", {
 export const jobs = sqliteTable("jobs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
+  description: text("description"),
   schedule: text("schedule").notNull(),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
 });

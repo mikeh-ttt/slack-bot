@@ -10,7 +10,12 @@ export function initializeDatabase() {
   const timesheetJob = getJobByName(TIMESHEET_CHECK_NAME);
   if (!timesheetJob) {
     const CRON_SCHEDULE = "0 */1 9-17 * * 1,2";
-    addJob(TIMESHEET_CHECK_NAME, CRON_SCHEDULE, true);
+    addJob(
+      TIMESHEET_CHECK_NAME,
+      CRON_SCHEDULE,
+      "Checks timesheet submissions every hour on weekdays 9-5 (format: second minute hour day month weekday)",
+      true
+    );
     console.log(
       `Added default job: ${TIMESHEET_CHECK_NAME} with schedule ${CRON_SCHEDULE}`
     );
@@ -91,11 +96,17 @@ export function getAllNudges() {
 
 // Job-related functions
 
-export function addJob(name: string, schedule: string, active: boolean = true) {
+export function addJob(
+  name: string,
+  schedule: string,
+  description?: string,
+  active: boolean = true
+) {
   return db
     .insert(jobs)
     .values({
       name,
+      description,
       schedule,
       active,
     })
@@ -105,12 +116,18 @@ export function addJob(name: string, schedule: string, active: boolean = true) {
 export function updateJob(
   id: number,
   name?: string,
+  description?: string,
   schedule?: string,
   active?: boolean
 ) {
-  const updates: Partial<{ name: string; schedule: string; active: boolean }> =
-    {};
+  const updates: Partial<{
+    name: string;
+    description: string;
+    schedule: string;
+    active: boolean;
+  }> = {};
   if (name) updates.name = name;
+  if (description !== undefined) updates.description = description;
   if (schedule) updates.schedule = schedule;
   if (active !== undefined) updates.active = active;
 

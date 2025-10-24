@@ -4,4 +4,5 @@ export const COMMANDS = {
     "timesheetNudge": "/timesheet-nudge",
     "nudgeSend": "nudge_send",
     "leaderboard": "/leaderboard",
+    "manageJobs": "/manage-jobs",
 }

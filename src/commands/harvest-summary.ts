@@ -34,7 +34,7 @@ export function registerHarvestSummary(app: App, allowed: Set<string>) {
 
     await respond({
       response_type: "ephemeral",
-      text: `Generating summary for *${from} → ${to}* (target: *${target}h*)…`,
+      text: `Generating summary for *${from} → ${to}* (target: **${target}h**)…`,
     });
 
     try {
@@ -57,10 +57,14 @@ export function registerHarvestSummary(app: App, allowed: Set<string>) {
         .sort((a, b) => a.hours - b.hours)
         .map((u) => {
           const h = u.hours.toFixed(2);
-          if (u.hours < target) {
-            return `• :warning: *${u.name} (${u.email})* — *${h}h*`;
+          let status = "🟢";
+          if (u.hours < target - 4) {
+            status = "🔴";
+          } else if (u.hours < target) {
+            status = "🟡";
           }
-          return `• ${u.name} (${u.email}) — ${h}h`;
+          const nameEmail = `*${u.name}*\n${u.email}`;
+          return `${status} ${nameEmail} — *${h}h`;
         })
         .join("\n");
 
@@ -69,7 +73,7 @@ export function registerHarvestSummary(app: App, allowed: Set<string>) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*Timesheet hours* (${from} → ${to}, target *${target}h*)\n${lines}`,
+            text: `*Timesheet Summary*\n${from} → ${to} (target: *${target}h*)\n\n${lines}`,
           },
         },
       ];
