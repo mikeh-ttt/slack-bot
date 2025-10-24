@@ -6,6 +6,7 @@ import {
 } from "../services/harvest";
 import { DEFAULT_TARGET_HOURS, lastWeekRangePT } from "../utils";
 import { COMMANDS } from "./constants";
+import { getNudgeCountThisWeek } from "../services/database.js";
 
 async function slackIdByEmail(email: string | undefined, web: any) {
   if (!email) return undefined;
@@ -210,32 +211,38 @@ export function registerTimesheetNudge(app: App, allowed: Set<string>) {
       ];
 
       const sortedList = underTarget.sort((a, b) => a.hours - b.hours);
-      const personBlocks = sortedList.flatMap((r) => [
-        {
-          type: "section" as const,
-          text: {
-            type: "mrkdwn" as const,
-            text: `*${r.name}*\n${r.email || "no-email"} • ${r.hours.toFixed(
-              2
-            )}h logged`,
+      const personBlocks = sortedList.flatMap((r) => {
+        const nudgeCount = getNudgeCountThisWeek(r.slackId!);
+        const nudgeText =
+          nudgeCount > 0 ? ` • 📢 ${nudgeCount} nudges this week` : "";
+
+        return [
+          {
+            type: "section" as const,
+            text: {
+              type: "mrkdwn" as const,
+              text: `*${r.name}*\n${r.email || "no-email"} • ${r.hours.toFixed(
+                2
+              )}h logged${nudgeText}`,
+            },
+            accessory: {
+              type: "button" as const,
+              text: { type: "plain_text" as const, text: "Send Nudge" },
+              style: "primary" as const,
+              action_id: "nudge_send",
+              value: JSON.stringify({
+                slackId: r.slackId,
+                name: r.name,
+                email: r.email,
+                hours: r.hours,
+                from,
+                to,
+                targetHours,
+              }),
+            },
           },
-          accessory: {
-            type: "button" as const,
-            text: { type: "plain_text" as const, text: "Send Nudge" },
-            style: "primary" as const,
-            action_id: "nudge_send",
-            value: JSON.stringify({
-              slackId: r.slackId,
-              name: r.name,
-              email: r.email,
-              hours: r.hours,
-              from,
-              to,
-              targetHours,
-            }),
-          },
-        },
-      ]);
+        ];
+      });
 
       const MAX_BLOCKS_PER_MESSAGE = 45;
       const allBlocks = [...headerBlocks, ...personBlocks];

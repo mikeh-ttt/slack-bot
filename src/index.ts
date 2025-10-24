@@ -2,6 +2,12 @@ import pkg from "@slack/bolt";
 import "dotenv/config";
 import { registerAllCommands } from "./commands/index.js";
 import { registerAllJobs } from "./jobs/index.js";
+import {
+  initializeDatabase,
+  closeDatabase,
+  addJob,
+  getJobByName,
+} from "./services/database.js";
 const { App, LogLevel } = pkg;
 
 const {
@@ -13,22 +19,20 @@ const {
   ALLOWED_INVOKERS,
 } = process.env;
 
-if (!SLACK_BOT_TOKEN || !SLACK_SIGNING_SECRET || !SLACK_APP_TOKEN) {
-  throw new Error(
-    "Missing Slack env vars (SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET, SLACK_APP_TOKEN)."
-  );
-}
-if (!HARVEST_ACCOUNT_ID || !HARVEST_ACCESS_TOKEN) {
-  throw new Error(
-    "Missing Harvest env vars (HARVEST_ACCOUNT_ID, HARVEST_ACCESS_TOKEN)."
-  );
-}
+if (!SLACK_BOT_TOKEN) throw new Error("Missing SLACK_BOT_TOKEN");
+if (!SLACK_SIGNING_SECRET) throw new Error("Missing SLACK_SIGNING_SECRET");
+if (!SLACK_APP_TOKEN) throw new Error("Missing SLACK_APP_TOKEN");
+if (!HARVEST_ACCOUNT_ID) throw new Error("Missing HARVEST_ACCOUNT_ID");
+if (!HARVEST_ACCESS_TOKEN) throw new Error("Missing HARVEST_ACCESS_TOKEN");
 
 const allowed = new Set<string>(
-  (ALLOWED_INVOKERS || "")
-    .split(",")
+  ALLOWED_INVOKERS?.split(",")
     .map((s) => s.trim())
-    .filter(Boolean)
+    .filter((s) => s) || []
+);
+
+console.log(
+  `Allowed invokers: ${allowed.size ? Array.from(allowed) : "(none)"}`
 );
 
 const app = new App({
@@ -38,6 +42,8 @@ const app = new App({
   socketMode: true,
   logLevel: LogLevel.INFO,
 });
+
+initializeDatabase();
 
 registerAllCommands(app, allowed);
 registerAllJobs(app, allowed);
@@ -53,12 +59,18 @@ registerAllJobs(app, allowed);
   }
 })();
 
-
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
 });
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
+  closeDatabase();
   process.exit(1);
+});
+
+process.on("SIGINT", () => {
+  console.log("\nShutting down...");
+  closeDatabase();
+  process.exit(0);
 });

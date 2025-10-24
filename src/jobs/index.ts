@@ -1,8 +1,15 @@
 import { App } from "@slack/bolt";
 import { registerTimesheetCheckJob } from "./timesheet-check";
+import { getActiveJobs } from "../services/database.js";
 
 export function registerAllJobs(app: App, allowed: Set<string>) {
-  const CRON_SCHEDULE =
-    process.env.TIMESHEET_CHECK_CRON || "0 */1 9-17 * * 1,2";
-  registerTimesheetCheckJob(app, allowed, CRON_SCHEDULE);
+  const activeJobs = getActiveJobs();
+  const timesheetJob = activeJobs.find(job => job.name === 'timesheet-check');
+
+  if (timesheetJob) {
+    console.log(`[CRON] Registering timesheet-check job with schedule: ${timesheetJob.schedule}`);
+    registerTimesheetCheckJob(app, allowed, timesheetJob.schedule);
+  } else {
+    console.log('[CRON] timesheet-check job not found in database or is inactive.');
+  }
 }

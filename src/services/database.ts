@@ -1,0 +1,142 @@
+import { db, closeDb } from "../db/index.js";
+import { nudges, jobs } from "../db/schema.js";
+import { eq, count, and, gte, sql } from "drizzle-orm";
+
+export function initializeDatabase() {
+  console.log("✅ Database initialized with Drizzle ORM");
+
+  // Initialize default jobs if they don't exist
+  const TIMESHEET_CHECK_NAME = "timesheet-check";
+  const timesheetJob = getJobByName(TIMESHEET_CHECK_NAME);
+  if (!timesheetJob) {
+    const CRON_SCHEDULE = "0 */1 9-17 * * 1,2";
+    addJob(TIMESHEET_CHECK_NAME, CRON_SCHEDULE, true);
+    console.log(
+      `Added default job: ${TIMESHEET_CHECK_NAME} with schedule ${CRON_SCHEDULE}`
+    );
+  } else {
+    console.log(
+      `Job ${TIMESHEET_CHECK_NAME} already exists with schedule ${timesheetJob.schedule}`
+    );
+  }
+}
+
+export function recordNudge(userId: string, email?: string, name?: string) {
+  db.insert(nudges)
+    .values({
+      userId,
+      userEmail: email,
+      userName: name,
+      nudgedAt: new Date(),
+    })
+    .run();
+}
+
+export function getNudgeCount(userId: string): number {
+  const result = db
+    .select({ count: count() })
+    .from(nudges)
+    .where(eq(nudges.userId, userId))
+    .get();
+
+  return result?.count || 0;
+}
+
+export function getNudgeCountThisWeek(userId: string): number {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const result = db
+    .select({ count: count() })
+    .from(nudges)
+    .where(and(eq(nudges.userId, userId), gte(nudges.nudgedAt, sevenDaysAgo)))
+    .get();
+
+  return result?.count || 0;
+}
+
+export function getNudgeCountToday(userId: string): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const result = db
+    .select({ count: count() })
+    .from(nudges)
+    .where(
+      and(
+        eq(nudges.userId, userId),
+        gte(nudges.nudgedAt, today),
+        sql`${nudges.nudgedAt} < ${tomorrow}`
+      )
+    )
+    .get();
+
+  return result?.count || 0;
+}
+
+export function getAllNudges() {
+  return db
+    .select({
+      userId: nudges.userId,
+      userEmail: nudges.userEmail,
+      userName: nudges.userName,
+      count: count(),
+    })
+    .from(nudges)
+    .groupBy(nudges.userId)
+    .orderBy(sql`count(*) DESC`)
+    .all();
+}
+
+// Job-related functions
+
+export function addJob(name: string, schedule: string, active: boolean = true) {
+  return db
+    .insert(jobs)
+    .values({
+      name,
+      schedule,
+      active,
+    })
+    .run();
+}
+
+export function updateJob(
+  id: number,
+  name?: string,
+  schedule?: string,
+  active?: boolean
+) {
+  const updates: Partial<{ name: string; schedule: string; active: boolean }> =
+    {};
+  if (name) updates.name = name;
+  if (schedule) updates.schedule = schedule;
+  if (active !== undefined) updates.active = active;
+
+  return db.update(jobs).set(updates).where(eq(jobs.id, id)).run();
+}
+
+export function deleteJob(id: number) {
+  return db.delete(jobs).where(eq(jobs.id, id)).run();
+}
+
+export function getJobById(id: number) {
+  return db.select().from(jobs).where(eq(jobs.id, id)).get();
+}
+
+export function getJobByName(name: string) {
+  return db.select().from(jobs).where(eq(jobs.name, name)).get();
+}
+
+export function getAllJobs() {
+  return db.select().from(jobs).all();
+}
+
+export function getActiveJobs() {
+  return db.select().from(jobs).where(eq(jobs.active, true)).all();
+}
+
+export function closeDatabase() {
+  closeDb();
+}

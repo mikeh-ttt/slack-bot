@@ -1,5 +1,10 @@
 import { App } from "@slack/bolt";
 import { COMMANDS } from "./constants";
+import {
+  recordNudge,
+  getNudgeCount,
+  getNudgeCountThisWeek,
+} from "../services/database.js";
 
 export function registerNudgeSend(app: App) {
   app.action(COMMANDS.nudgeSend, async ({ ack, body, action, client }) => {
@@ -20,15 +25,26 @@ export function registerNudgeSend(app: App) {
         return;
       }
 
+      recordNudge(payload.slackId, payload.email, payload.name);
+      const nudgeCount = getNudgeCount(payload.slackId);
+      const nudgeCountThisWeek = getNudgeCountThisWeek(payload.slackId);
+
       const open = await client.conversations.open({ users: payload.slackId });
       const dmChannel = open.channel!.id!;
+
+      let message = `Hey ${payload.name}! You logged *${payload.hours.toFixed(
+        2
+      )}h* for ${payload.from} → ${payload.to} (target: *${
+        payload.targetHours
+      }h*). Please log more time if needed. Thanks!`;
+
+      if (nudgeCount > 1) {
+        message += `\n\n_This is nudge #${nudgeCount} for you (${nudgeCountThisWeek} this week)._`;
+      }
+
       await client.chat.postMessage({
         channel: dmChannel,
-        text: `Hey ${payload.name}! You logged *${payload.hours.toFixed(
-          2
-        )}h* for ${payload.from} → ${payload.to} (target: *${
-          payload.targetHours
-        }h*). Please log more time if needed. Thanks!`,
+        text: message,
       });
     } catch (err) {
       console.log("[NUDGE ACTION] Error handling nudge_send:", err);
