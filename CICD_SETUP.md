@@ -131,9 +131,6 @@ For better security, use SSH keys instead of passwords:
 - Triggers: Push to `main` or `dev`
 - Builds, tests, and deploys to Windows server
 
-**Test Workflow** (`test.yml`)
-- Triggers: Push or pull request to `main`/`dev`
-- Checks TypeScript compilation and linting
 
 ---
 
