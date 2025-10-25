@@ -5,7 +5,7 @@ import {
   getUserHoursForRange,
 } from "../services/harvest";
 import { buildManagerBlocks, parseReportArgs, toCsv } from "../utils";
-import { COMMANDS } from "./constants";
+import { COMMANDS } from "../utils/commands";
 
 export function registerTimesheetReport(app: App, allowed: Set<string>) {
   app.command(

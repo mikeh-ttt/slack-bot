@@ -4,26 +4,6 @@ import { eq, count, and, gte, sql } from "drizzle-orm";
 
 export function initializeDatabase() {
   console.log("✅ Database initialized with Drizzle ORM");
-
-  // Initialize default jobs if they don't exist
-  const TIMESHEET_CHECK_NAME = "timesheet-check";
-  const timesheetJob = getJobByName(TIMESHEET_CHECK_NAME);
-  if (!timesheetJob) {
-    const CRON_SCHEDULE = "0 */1 9-17 * * 1,2";
-    addJob(
-      TIMESHEET_CHECK_NAME,
-      CRON_SCHEDULE,
-      "Checks timesheet submissions every hour on weekdays 9-5 (format: second minute hour day month weekday)",
-      true
-    );
-    console.log(
-      `Added default job: ${TIMESHEET_CHECK_NAME} with schedule ${CRON_SCHEDULE}`
-    );
-  } else {
-    console.log(
-      `Job ${TIMESHEET_CHECK_NAME} already exists with schedule ${timesheetJob.schedule}`
-    );
-  }
 }
 
 export function recordNudge(userId: string, email?: string, name?: string) {

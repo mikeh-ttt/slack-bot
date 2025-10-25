@@ -1,6 +1,6 @@
 import { App } from "@slack/bolt";
 import { getWeeklyLeaderboard } from "../services/analytics";
-import { COMMANDS } from "./constants";
+import { COMMANDS } from "../utils/commands";
 
 const EMOJIS = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
 
