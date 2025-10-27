@@ -17,6 +17,7 @@
         "axios": "^1.7.7",
         "better-sqlite3": "^9.2.2",
         "date-fns": "^3.6.0",
+        "cronstrue": "^2.32.0",
         "dotenv": "^16.4.5",
         "drizzle-orm": "^0.44.7",
         "node-cron": "^4.2.1"

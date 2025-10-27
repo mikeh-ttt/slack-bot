@@ -30,20 +30,11 @@ export function registerTimesheetCheckJob(
         const missing: Array<{ name: string; hours: number }> = [];
         for (const u of users) {
           const hours = await getUserHoursForRange(u.id, from, to);
-          if (hours < 36)
+          if (hours < 35)
             missing.push({ name: u.first_name + " " + u.last_name, hours });
         }
         if (missing.length === 0) {
-          const text = `✅ All ${users.length} people logged ≥36h for last week (${from} → ${to}). Great job!`;
-          for (const uid of allowed) {
-            const dm = await app.client.conversations.open({ users: uid });
-            await app.client.chat.postMessage({
-              channel: dm.channel!.id!,
-              text,
-            });
-          }
-        } else {
-          const text = `❌ ${missing.length} people logged <36h for last week (${from} → ${to}).`;
+          const text = `✅ All ${users.length} people logged ≥35h for last week (${from} → ${to}). Great job!`;
           for (const uid of allowed) {
             const dm = await app.client.conversations.open({ users: uid });
             await app.client.chat.postMessage({
@@ -67,6 +58,9 @@ export function restartTimesheetCheckJob(
   allowed: Set<string>,
   schedule: string
 ) {
-  console.log("[CRON] Restarting timesheet check job with new schedule:", schedule);
+  console.log(
+    "[CRON] Restarting timesheet check job with new schedule:",
+    schedule
+  );
   registerTimesheetCheckJob(app, allowed, schedule);
 }

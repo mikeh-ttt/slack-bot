@@ -2,6 +2,7 @@ import { App } from "@slack/bolt";
 import { getAllJobs, updateJob } from "../services/database";
 import { restartTimesheetCheckJob } from "../jobs/timesheet-check";
 import { COMMANDS } from "../utils/commands";
+import { toString } from "cronstrue";
 
 export function registerManageJobs(app: App, allowed: Set<string>) {
   app.command(COMMANDS.manageJobs, async ({ ack, body, client, respond }) => {
@@ -41,13 +42,17 @@ export function registerManageJobs(app: App, allowed: Set<string>) {
 
     jobs.forEach((job) => {
       const descText = job.description ? `\n${job.description}` : "";
+      let cronDescription = "";
+      try {
+        cronDescription = `\n_${toString(job.schedule)}_`;
+      } catch (err) {
+        cronDescription = "\n_Invalid cron expression_";
+      }
       blocks.push({
         type: "section" as const,
         text: {
           type: "mrkdwn" as const,
-          text: `*${job.name}*${descText}\nSchedule: \`${
-            job.schedule
-          }\`\nStatus: ${job.active ? "🟢 Active" : "🔴 Inactive"}`,
+          text: `*${job.name}*${descText}\nSchedule: \`${job.schedule}\`${cronDescription}\nStatus: ${job.active ? "🟢 Active" : "🔴 Inactive"}`,
         },
         accessory: {
           type: "button" as const,
@@ -55,7 +60,7 @@ export function registerManageJobs(app: App, allowed: Set<string>) {
           action_id: "edit_job",
           value: JSON.stringify({ jobId: job.id }),
         },
-      });
+      } as any);
     });
 
     await respond({
@@ -130,7 +135,13 @@ export function registerManageJobs(app: App, allowed: Set<string>) {
             },
             hint: {
               type: "plain_text",
-              text: "Use cron format. See https://crontab.cronhub.io/ for help.",
+              text: `Use cron format. See https://crontab.cronhub.io/ for help. Current: ${(() => {
+                try {
+                  return toString(job.schedule);
+                } catch (err) {
+                  return "Invalid cron expression";
+                }
+              })()}`,
             },
           },
           {
