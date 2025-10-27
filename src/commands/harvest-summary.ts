@@ -2,6 +2,7 @@ import { App } from "@slack/bolt";
 import {
   getActiveHarvestUsers,
   getUserHoursForRange,
+  getProjectHours,
 } from "../services/harvest";
 import { parseSummaryArgs } from "../utils";
 import { COMMANDS } from "../utils/commands";
@@ -68,12 +69,27 @@ export function registerHarvestSummary(app: App, allowed: Set<string>) {
         })
         .join("\n");
 
+      // Get project hours
+      const projects = await getProjectHours(from, to);
+      const projectLines = projects
+        .sort((a, b) => b.hours - a.hours)
+        .map((p) => `• *${p.name}* — *${Number(p.hours.toFixed(2))}h*`)
+        .join("\n");
+
       const blocks = [
         {
-          type: "section",
+          type: "section" as const,
           text: {
-            type: "mrkdwn",
+            type: "mrkdwn" as const,
             text: `*Timesheet Summary*\n${from} → ${to} (target: *${target}h*)\n\n${lines}`,
+          },
+        },
+        { type: "divider" as const },
+        {
+          type: "section" as const,
+          text: {
+            type: "mrkdwn" as const,
+            text: `*Hours by Project*\n${projectLines}`,
           },
         },
       ];

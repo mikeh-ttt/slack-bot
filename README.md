@@ -41,7 +41,6 @@ docker-compose up -d
 | Command | Description |
 |---|---|
 | `/harvest-summary` | Billable hours by team member |
-| `/timesheet-report` | Detailed timesheet report |
 | `/timesheet-nudge` | Send timesheet reminders |
 | `/leaderboard` | Top billable hours this week |
 
