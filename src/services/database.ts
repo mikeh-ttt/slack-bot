@@ -174,6 +174,14 @@ export function getAllManagements() {
   return db.select().from(managements).all();
 }
 
+export function getExcludedEmails() {
+  return db
+    .select({ email: managements.email })
+    .from(managements)
+    .all()
+    .map((m) => m.email);
+}
+
 export function closeDatabase() {
   closeDb();
 }

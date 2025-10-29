@@ -4,6 +4,7 @@ import {
   getActiveHarvestUsers,
   getUserHoursForRange,
 } from "../services/harvest";
+import { getExcludedEmails } from "../services/database";
 import { lastWeekRangePT } from "../utils";
 
 let timesheetCheckTask: any = null;
@@ -27,14 +28,27 @@ export function registerTimesheetCheckJob(
       const { from, to } = lastWeekRangePT();
       try {
         const users = await getActiveHarvestUsers();
+        const excludedEmails = getExcludedEmails();
+        const filteredUsers = users.filter(
+          (u) => !excludedEmails.includes(u.email)
+        );
         const missing: Array<{ name: string; hours: number }> = [];
-        for (const u of users) {
+        for (const u of filteredUsers) {
           const hours = await getUserHoursForRange(u.id, from, to);
           if (hours < 35)
             missing.push({ name: u.first_name + " " + u.last_name, hours });
         }
         if (missing.length === 0) {
-          const text = `✅ All ${users.length} people logged ≥35h for last week (${from} → ${to}). Great job!`;
+          const text = `✅ All ${filteredUsers.length} people logged ≥35h for last week (${from} → ${to}). Great job!`;
+          for (const uid of allowed) {
+            const dm = await app.client.conversations.open({ users: uid });
+            await app.client.chat.postMessage({
+              channel: dm.channel!.id!,
+              text,
+            });
+          }
+        } else {
+          const text = `❌ ${missing.length} people logged <35h for last week (${from} → ${to}):\n${missing.map((m) => `• ${m.name}: ${m.hours}h`).join("\n")}`;
           for (const uid of allowed) {
             const dm = await app.client.conversations.open({ users: uid });
             await app.client.chat.postMessage({

@@ -20,9 +20,11 @@ export async function seedDatabase() {
 
 async function seedManagements() {
   const managementData = [
-    { name: "Alice Johnson", email: "alice@example.com" },
-    { name: "Bob Smith", email: "bob@example.com" },
-    { name: "Carol White", email: "carol@example.com" },
+    { name: "Frontier CFO", email: "ttt.studios@frontiercfo.ca" },
+    { name: "Liam McLean", email: "liam.mclean@ttt.studio" },
+    { name: "Jose Hernandez", email: "jose@ttt.studio" },
+    { name: "Irving Waisman", email: "irving.waisman@ttt.studio" },
+    { name: "David Hobbs", email: "david@ttt.studio" },
   ];
 
   console.log("📝 Seeding managements table...");
